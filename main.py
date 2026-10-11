@@ -11,8 +11,8 @@ import profile_interactions
 import signals_and_buttons
 import trees
 import profile_interactions
-from trees_interactions import *
 import trees_interactions
+import queue_manager
 from user_interface.ui_client import Ui_KFTP
 
 
@@ -26,6 +26,7 @@ class FTPClient(QMainWindow, Ui_KFTP):
 
     setup_local_tree = trees.setup_local_tree
     setup_remote_tree = trees.setup_remote_tree
+    refresh_remote_tree = trees.refresh_remote_tree
     add_tree_item = trees.add_tree_item
 
     show_local_context_menu = trees_interactions.show_local_context_menu
@@ -35,12 +36,19 @@ class FTPClient(QMainWindow, Ui_KFTP):
     on_send_to_local = trees_interactions.on_send_to_local
     on_send_to_remote = trees_interactions.on_send_to_remote
 
+    on_local_item_clicked = trees_interactions.on_local_item_clicked
+    on_local_path_entered = trees_interactions.on_local_path_entered
+    on_remote_item_clicked = trees_interactions.on_remote_item_clicked
+    on_remote_path_entered = trees_interactions.on_remote_path_entered
+
     @asyncSlot(QModelIndex)
     async def on_node_expanded(self, index):
+        """Handle node expansion event in both local and remote trees"""
         await trees.on_node_expanded(self, index)
 
     @asyncSlot()
     async def handle_connection(self):
+        """Handle connection button click event"""
         await handle_connection.handle_connection(self)
 
     def __init__(self):
@@ -49,6 +57,7 @@ class FTPClient(QMainWindow, Ui_KFTP):
 
         self.ftp_client = None
         self.mime_db = QMimeDatabase()
+        self.queue_manager = queue_manager.QueueManager(self)
 
         self.setup_local_tree()
         self.setup_remote_tree()

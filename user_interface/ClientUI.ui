@@ -153,21 +153,21 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QPushButton" name="pushButton_3">
+         <widget class="QPushButton" name="StartResume_PushButton">
           <property name="text">
            <string>Start/Resume</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_4">
+         <widget class="QPushButton" name="Pause_PushButton">
           <property name="text">
            <string>Pause</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_2">
+         <widget class="QPushButton" name="ClearCancel_PushButton">
           <property name="text">
            <string>Clear/Cancel</string>
           </property>
@@ -177,6 +177,9 @@
       </item>
       <item>
        <widget class="QTableWidget" name="table_queue">
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
         <column>
          <property name="text">
           <string>File</string>
@@ -208,6 +211,7 @@
     </item>
    </layout>
   </widget>
+  <widget class="QStatusBar" name="statusbar"/>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
@@ -223,13 +227,13 @@
     </property>
     <addaction name="actionClose"/>
     <addaction name="actionSettings"/>
-    <addaction name="actionCredits"/>
     <addaction name="actionSave_Profile"/>
     <addaction name="actionDelete_Profile"/>
+    <addaction name="actionUpdate_remote_tree"/>
+    <addaction name="actionCredits"/>
    </widget>
    <addaction name="menuK_FTP"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
   <action name="actionClose">
    <property name="text">
     <string>Close</string>
@@ -253,6 +257,11 @@
   <action name="actionDelete_Profile">
    <property name="text">
     <string>Delete Profile</string>
+   </property>
+  </action>
+  <action name="actionUpdate_remote_tree">
+   <property name="text">
+    <string>Update remote tree</string>
    </property>
   </action>
  </widget>

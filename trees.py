@@ -1,6 +1,8 @@
 from PyQt6.QtCore import QDir, QModelIndex, Qt
 from PyQt6.QtGui import QFileSystemModel, QStandardItem, QStandardItemModel
 from PyQt6.QtWidgets import QStyle
+from qasync import asyncSlot
+import log
 
 from config import (
     HEADER_NAME,
@@ -11,6 +13,9 @@ from config import (
     LOCAL_COLUMN_0_WIDTH,
     LOG_FETCH_SUBFOLDER,
     LOG_FETCH_SUBFOLDER_ERROR,
+    LOG_LOADING_UPDATE_REMOTE_FS,
+    LOG_UPDATE_REMOTE_FS,
+    LOG_UPDATE_REMOTE_FS_ERROR,
     REMOTE_COLUMN_0_WIDTH,
     REMOTE_COLUMN_1_WIDTH,
     TEXT_FILE,
@@ -35,6 +40,34 @@ def setup_remote_tree(self):
     self.remote.setModel(self.remote_model)
     self.remote.setColumnWidth(0, REMOTE_COLUMN_0_WIDTH)
     self.remote.setColumnWidth(1, REMOTE_COLUMN_1_WIDTH)
+
+
+@asyncSlot()
+async def refresh_remote_tree(self):
+    if not self.ftp_client:
+        return
+
+    self.remote_model.removeRows(0, self.remote_model.rowCount())
+    try:
+        self.log(LOG_LOADING_UPDATE_REMOTE_FS)
+
+        items_list = []
+        async for path, stat in self.ftp_client.list():
+            if path.name in [".", ".."]:
+                continue
+            items_list.append((path, stat))
+
+        items_list.sort(
+            key=lambda x: (x[1].get(KEY_TYPE) != TYPE_DIR, x[0].name.lower())
+        )
+
+        for path, stat in items_list:
+            self.add_tree_item(self.remote_model, path, stat)
+
+        self.log(LOG_UPDATE_REMOTE_FS)
+
+    except Exception as e:
+        self.log(LOG_UPDATE_REMOTE_FS_ERROR.format(error=e))
 
 
 def add_tree_item(self, parent, path, stat):

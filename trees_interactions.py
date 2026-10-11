@@ -5,6 +5,23 @@ import log
 from qasync import asyncSlot
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMenu, QMessageBox, QFileDialog
+import asyncio
+from config import (
+    LOG_NO_FTP_CLIENT,
+    LOG_ITEM_NOT_FOUND,
+    LOG_REMOTE_PATH_NOT_FOUND,
+    DIALOG_SAVE_FOLDER_TITLE,
+    DIR_MARKERS,
+    LOG_SCANNING_LOCAL_FOLDER,
+    LOG_SCANNING_REMOTE_FOLDER,
+    TYPE_DIR,
+    DIRECTION_DOWNLOAD,
+    DIRECTION_UPLOAD,
+    LOG_FOLDER_FILES_ADDED,
+    LOG_REMOTE_FOLDER_READ_ERROR,
+    LOG_LOCAL_PATH_NOT_FOUND,
+    DEFAULT_REMOTE_PATH,
+)
 
 
 def show_local_context_menu(self, pos):
@@ -100,51 +117,159 @@ async def on_delete_from_remote(self, index):
 
 @asyncSlot()
 async def on_send_to_local(self, index):
+    """Download directly to the currently opened local directory (FileZilla style)."""
+    if not self.ftp_client:
+        self.log(LOG_NO_FTP_CLIENT)
+        return
+
     item = self.remote_model.itemFromIndex(index)
     if not item:
-        self.log("Item not found!")
         return
 
     remote_path = item.data(Qt.ItemDataRole.UserRole)
     file_name = item.text()
-
     if not remote_path:
-        self.log("Remote path not found!")
         return
 
-    local_dest_path = QFileDialog.getExistingDirectory(
-        self,
-        "Save file",
-        "",
+    local_dest_path = (
+        self.local_pathline.text().strip()
+        if hasattr(self, "local_pathline") and self.local_pathline.text()
+        else str(Path.home() / "Downloads")
     )
 
-    if not local_dest_path:
-        return
+    type_item = self.remote_model.item(index.row(), 2)
+    is_dir = type_item is not None and type_item.text() in DIR_MARKERS
 
-    try:
-        await self.ftp_client.download(remote_path, local_dest_path)
-        self.log(f"{file_name} downloaded successfully!")
-    except Exception as e:
-        self.log(f"Error: {e}")
+    if is_dir:
+        self.log(LOG_SCANNING_REMOTE_FOLDER.format(name=file_name))
+        try:
+            count = 0
+            async for path, stat in self.ftp_client.list(remote_path, recursive=True):
+                if stat.get("type") != TYPE_DIR and path.name not in [".", ".."]:
+                    rel_path = Path(str(path)).relative_to(
+                        Path(str(remote_path)).parent
+                    )
+                    target_dir = Path(local_dest_path) / rel_path.parent
+                    target_dir.mkdir(parents=True, exist_ok=True)
+
+                    self.queue_manager.add_task(
+                        file_name=path.name,
+                        direction=DIRECTION_DOWNLOAD,
+                        source_path=str(path),
+                        dest_path=str(target_dir),
+                        total_size=stat.get("size", 0) or 0,
+                    )
+                    count += 1
+            self.log(LOG_FOLDER_FILES_ADDED.format(count=count))
+        except Exception as e:
+            self.log(LOG_REMOTE_FOLDER_READ_ERROR.format(error=e))
+    else:
+        raw_size = item.data(Qt.ItemDataRole.UserRole + 1) or 0
+        self.queue_manager.add_task(
+            file_name=file_name,
+            direction=DIRECTION_DOWNLOAD,
+            source_path=str(remote_path),
+            dest_path=local_dest_path,
+            total_size=raw_size,
+        )
 
 
 @asyncSlot()
 async def on_send_to_remote(self, index):
+    """Enqueue local file or directory for uploading to remote server."""
     if not self.ftp_client:
-        self.log("No FTP client connected!")
+        self.log(LOG_NO_FTP_CLIENT)
         return
 
     local_path = Path(self.local_model.filePath(index))
+    if not local_path.exists():
+        self.log(LOG_LOCAL_PATH_NOT_FOUND)
+        return
 
-    destination_dir = "/"
-    if hasattr(self, "input_remote_path") and self.input_remote_path.text():
-        destination_dir = self.input_remote_path.text()
+    destination_dir = DEFAULT_REMOTE_PATH
+    if hasattr(self, "remote_pathline") and self.remote_pathline.text():
+        destination_dir = self.remote_pathline.text().strip() or DEFAULT_REMOTE_PATH
 
-    self.log(f"Uploading '{local_path.name}' to server [{destination_dir}]...")
+    if local_path.is_dir():
+        self.log(LOG_SCANNING_LOCAL_FOLDER.format(name=local_path.name))
+        count = 0
+        for file in local_path.rglob("*"):
+            if file.is_file():
+                rel_dir = file.parent.relative_to(local_path.parent)
+                target_remote_dir = (f"{destination_dir}/{rel_dir.as_posix()}").replace(
+                    "//", "/"
+                )
 
-    try:
-        await self.ftp_client.upload(local_path, destination_dir)
-        self.log(f"'{local_path.name}' uploaded successfully!")
+                self.queue_manager.add_task(
+                    file_name=file.name,
+                    direction=DIRECTION_UPLOAD,
+                    source_path=str(file),
+                    dest_path=target_remote_dir,
+                    total_size=file.stat().st_size,
+                )
+                count += 1
+        self.log(LOG_FOLDER_FILES_ADDED.format(count=count))
+    else:
+        self.queue_manager.add_task(
+            file_name=local_path.name,
+            direction=DIRECTION_UPLOAD,
+            source_path=str(local_path),
+            dest_path=destination_dir,
+            total_size=local_path.stat().st_size,
+        )
 
-    except Exception as e:
-        self.log(f"Error: {e}")
+
+def on_local_item_clicked(self, index):
+    path = self.local_model.filePath(index)
+
+    if not self.local_model.isDir(index):
+        path = str(Path(path).parent)
+
+    self.local_pathline.setText(path)
+
+
+def on_local_path_entered(self):
+    path = self.local_pathline.text().strip()
+
+    if os.path.exists(path) and os.path.isdir(path):
+        index = self.local_model.index(path)
+        self.local.setRootIndex(index)
+
+    else:
+        self.log("Invalid path!")
+
+
+def on_remote_item_clicked(self, index):
+    item = self.remote_model.itemFromIndex(index)
+    if not item:
+        return
+
+    path = item.data(Qt.ItemDataRole.UserRole)
+    if path:
+        self.remote_pathline.setText(str(path))
+
+
+def find_item_by_path(parent_item, target_path):
+    for row in range(parent_item.rowCount()):
+        child = parent_item.child(row)
+        if child.data(Qt.ItemDataRole.UserRole) == target_path:
+            return child
+        found = find_item_by_path(child, target_path)
+        if found:
+            return found
+    return None
+
+
+def on_remote_path_entered(self):
+    target_path = self.remote_pathline.text().strip()
+
+    item = find_item_by_path(self.remote_model.invisibleRootItem(), target_path)
+    if item:
+        index = item.index()
+        self.remote.setCurrentIndex(index)
+        self.remote.scrollTo(index)
+        self.log(f"Access to: {target_path}")
+    else:
+        self.log(
+            f"Folder {target_path} hasn't been loaded yet. Expand it through the tree."
+        )

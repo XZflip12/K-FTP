@@ -63,6 +63,9 @@ TEXT_LOADING = "Loading..."
 # Сообщения для логов
 LOG_FETCH_SUBFOLDER = "Fetching subfolder: {path}..."
 LOG_FETCH_SUBFOLDER_ERROR = "Error fetching subfolder: {error}"
+LOG_LOADING_UPDATE_REMOTE_FS = "Updating remote filesystem..."
+LOG_UPDATE_REMOTE_FS = "Remote filesystem updated"
+LOG_UPDATE_REMOTE_FS_ERROR = "Error updating remote filesystem: {error}"
 
 # Имя файла базы данных
 DB_FILE_NAME = "profiles.db"
@@ -111,3 +114,22 @@ SQL_SELECT_BY_ID = "SELECT host, username, password, port FROM profiles WHERE id
 # Дефолтные значения для тестового сервера
 DEFAULT_SERVER_HOST = "localhost"
 DEFAULT_SERVER_PORT = 2121
+
+# Константы для операций по передаче файлов
+DIRECTION_DOWNLOAD = "Download"
+DIRECTION_UPLOAD = "Upload"
+
+DIR_MARKERS = ("Folder", "Папка")
+TYPE_DIR = "dir"
+DEFAULT_REMOTE_PATH = "/"
+
+DIALOG_SAVE_FOLDER_TITLE = "Save file to folder"
+
+LOG_NO_FTP_CLIENT = "No FTP client connected!"
+LOG_ITEM_NOT_FOUND = "Item not found!"
+LOG_REMOTE_PATH_NOT_FOUND = "Remote path not found!"
+LOG_LOCAL_PATH_NOT_FOUND = "Local path not found!"
+LOG_SCANNING_REMOTE_FOLDER = "Scanning folder '{name}' for queue..."
+LOG_SCANNING_LOCAL_FOLDER = "Scanning local folder '{name}' for queue..."
+LOG_FOLDER_FILES_ADDED = "Added {count} files from folder to queue."
+LOG_REMOTE_FOLDER_READ_ERROR = "Error reading remote folder: {error}"
