@@ -152,12 +152,19 @@ async def on_send_to_local(self, index):
                     target_dir = Path(local_dest_path) / rel_path.parent
                     target_dir.mkdir(parents=True, exist_ok=True)
 
+                    # Safely convert size to int (handles strings/None returned by FTP)
+                    raw_size = stat.get("size", 0)
+                    try:
+                        total_size = int(raw_size) if raw_size is not None else 0
+                    except (ValueError, TypeError):
+                        total_size = 0
+
                     self.queue_manager.add_task(
                         file_name=path.name,
                         direction=DIRECTION_DOWNLOAD,
                         source_path=str(path),
                         dest_path=str(target_dir),
-                        total_size=stat.get("size", 0) or 0,
+                        total_size=total_size,
                     )
                     count += 1
             self.log(LOG_FOLDER_FILES_ADDED.format(count=count))
@@ -165,12 +172,17 @@ async def on_send_to_local(self, index):
             self.log(LOG_REMOTE_FOLDER_READ_ERROR.format(error=e))
     else:
         raw_size = item.data(Qt.ItemDataRole.UserRole + 1) or 0
+        try:
+            total_size = int(raw_size) if raw_size is not None else 0
+        except (ValueError, TypeError):
+            total_size = 0
+
         self.queue_manager.add_task(
             file_name=file_name,
             direction=DIRECTION_DOWNLOAD,
             source_path=str(remote_path),
             dest_path=local_dest_path,
-            total_size=raw_size,
+            total_size=total_size,
         )
 
 
