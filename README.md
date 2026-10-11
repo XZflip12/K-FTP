@@ -99,9 +99,7 @@ k-ftp/
 
 ## Status and limitations
 
-- The **transfer queue** (the *File / Where is / Size / Status / Progress* table and the *Start/Resume*, *Pause*, *Clear/Cancel* buttons) is present in the UI but not yet wired to any logic.
 - The **Settings** and **Credits** menu items are not implemented yet.
-- The path fields above the trees (`Local` / `Remote`) are currently decorative only; uploads go to the root `/` by default.
 - Only plain FTP is supported: **FTPS/SFTP are not implemented**, and data (including the password) is sent unencrypted.
 - Profile passwords are stored in `profiles.db` **in plain text**. Do not save sensitive credentials there.
 - There are no automated tests: `test_server.py` is a helper server, not a test suite.
