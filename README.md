@@ -1,5 +1,5 @@
 # K-FTP
-
+![header_logo](header.png)
 A simple desktop FTP client with a graphical interface built on **PyQt6**, with asynchronous networking via **aioftp** + **qasync**. The local file system is on the left, the remote server tree is on the right, and an operation log console sits below. Connections can be saved as profiles (SQLite).
 
 > This is a work-in-progress/learning project: some parts of the interface (the transfer queue, settings) are still placeholders. See [Status and limitations](#status-and-limitations).
