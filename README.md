@@ -2,7 +2,7 @@
 ![header_logo](header.png)
 A simple desktop FTP client with a graphical interface built on **PyQt6**, with asynchronous networking via **aioftp** + **qasync**. The local file system is on the left, the remote server tree is on the right, and an operation log console sits below. Connections can be saved as profiles (SQLite).
 
-> This is a work-in-progress/learning project: some parts of the interface (the transfer queue, settings) are still placeholders. See [Status and limitations](#status-and-limitations).
+> This is a work-in-progress project: some parts of the interface (the transfer queue, settings) are still placeholders. See [Status and limitations](#status-and-limitations).
 
 ## Features
 
@@ -63,29 +63,6 @@ python test_server.py
 
 The server starts on `localhost:2121` (by default aioftp accepts anonymous users and serves the current directory). In the client, use host `localhost`, port `2121`, username `anonymous` and an empty password.
 
-## Project structure
-
-```
-k-ftp/
-├── main.py                  # Entry point, FTPClient main window, qasync loop startup
-├── config.py                # Constants: defaults, log messages, SQL queries
-├── handle_connection.py     # Connecting, logging in and loading the root directory
-├── trees.py                 # Local/remote tree models, lazy folder loading
-├── trees_interactions.py    # Context menus, upload/download/delete of files
-├── profile_interactions.py  # Profile logic in the UI (load, select, save, delete)
-├── db.py                    # SQLite access (profiles.db)
-├── signals_and_buttons.py   # Wiring Qt signals to handlers
-├── log.py                   # Timestamped messages in the log console
-├── misc/format_size.py      # File size formatting
-├── user_interface/
-│   ├── ClientUI.ui          # Interface layout (Qt Designer)
-│   └── ui_client.py         # Python code generated from the .ui file (pyuic6)
-├── test_server.py           # Local aioftp FTP server for debugging
-├── profiles.db              # SQLite profile database
-├── requirements.txt         # Dependencies
-└── .pylintrc                # pylint settings
-```
-
 ### How it works
 
 - `main.py` builds the `FTPClient` class, which inherits from `QMainWindow` and the generated `Ui_KFTP`. The logic is split into modules as plain functions that are attached to the class as methods.
@@ -104,12 +81,6 @@ k-ftp/
 - Profile passwords are stored in `profiles.db` **in plain text**. Do not save sensitive credentials there.
 - There are no automated tests: `modules/test_server.py` is a helper server, not a test suite.
 
-## Development
-
-- Code style is checked with `pylint` (configuration in `.pylintrc`).
-- `.vscode/settings.json` enables running tests via `pytest`.
-- The repository currently contains `__pycache__` directories and `profiles.db`; it is recommended to add a `.gitignore` and remove them from the index.
-
 ## License
 
-No license is specified in the repository. If you plan to share the project, add a `LICENSE` file.
+This project is licensed under the **GNU General Public License v3.0** - see the [LICENSE](LICENSE) file for details.
