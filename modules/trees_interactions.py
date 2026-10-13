@@ -1,16 +1,11 @@
 import os
 import shutil
 from pathlib import Path
-import log
 from qasync import asyncSlot
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QMenu, QMessageBox, QFileDialog
-import asyncio
-from config import (
+from PyQt6.QtWidgets import QMenu, QMessageBox
+from modules.config import (
     LOG_NO_FTP_CLIENT,
-    LOG_ITEM_NOT_FOUND,
-    LOG_REMOTE_PATH_NOT_FOUND,
-    DIALOG_SAVE_FOLDER_TITLE,
     DIR_MARKERS,
     LOG_SCANNING_LOCAL_FOLDER,
     LOG_SCANNING_REMOTE_FOLDER,

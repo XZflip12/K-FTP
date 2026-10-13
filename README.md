@@ -55,7 +55,7 @@ python main.py
 
 ### Local test server
 
-To try the client without an external FTP server, the repository includes `test_server.py`:
+To try the client without an external FTP server, the repository includes `modules/test_server.py`:
 
 ```bash
 python test_server.py
@@ -102,7 +102,7 @@ k-ftp/
 - The **Settings** and **Credits** menu items are not implemented yet.
 - Only plain FTP is supported: **FTPS/SFTP are not implemented**, and data (including the password) is sent unencrypted.
 - Profile passwords are stored in `profiles.db` **in plain text**. Do not save sensitive credentials there.
-- There are no automated tests: `test_server.py` is a helper server, not a test suite.
+- There are no automated tests: `modules/test_server.py` is a helper server, not a test suite.
 
 ## Development
 

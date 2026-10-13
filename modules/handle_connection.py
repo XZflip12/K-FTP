@@ -1,6 +1,6 @@
 import aioftp
 
-from config import (
+from modules.config import (
     DEFAULT_FTP_PORT,
     DEFAULT_FTP_USER,
     DEFAULT_SOCKET_TIMEOUT,

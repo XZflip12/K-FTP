@@ -1,7 +1,7 @@
 import sqlite3
 from pathlib import Path
 
-from config import (
+from modules.config import (
     DB_FILE_NAME,
     DEFAULT_DB_HOST,
     DEFAULT_DB_PASS,

@@ -1,4 +1,4 @@
-from config import (
+from modules.config import (
     COMBO_INDEX_EMPTY,
     DEFAULT_FTP_PORT,
     DEFAULT_FTP_USER,
@@ -18,7 +18,7 @@ from config import (
     LOG_SAVE_NO_HOST_ERROR,
     LOG_SAVE_SUCCESS,
 )
-from db import delete_profile, get_profile, get_profiles, save_profile
+from modules.db import delete_profile, get_profile, get_profiles, save_profile
 
 
 def load_profiles(self):

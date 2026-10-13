@@ -5,14 +5,8 @@ from PyQt6.QtCore import Qt, QMimeDatabase, QModelIndex
 from PyQt6.QtWidgets import QApplication, QMainWindow
 from qasync import QEventLoop, asyncSlot
 
-import handle_connection
-import log
-import profile_interactions
-import signals_and_buttons
-import trees
-import profile_interactions
-import trees_interactions
-import queue_manager
+from modules import handle_connection, signals_and_buttons, trees, trees_interactions, queue_manager, \
+    profile_interactions, log
 from user_interface.ui_client import Ui_KFTP
 
 

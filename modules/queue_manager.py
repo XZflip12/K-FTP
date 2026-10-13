@@ -108,7 +108,6 @@ class QueueManager:
         status_item = QTableWidgetItem(TaskStatus.QUEUED.value)
         table.setItem(row, 3, status_item)
 
-        # Колонка 4: Только текст, без линии прогресс-бара
         initial_text = (
             f"0% (0 B / {format_size(total_size)})" if total_size > 0 else "0 B"
         )

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from config import LOG_FORMAT
+from modules.config import LOG_FORMAT
 
 
 def log(self, message: str):

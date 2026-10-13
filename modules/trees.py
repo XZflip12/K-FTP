@@ -2,9 +2,8 @@ from PyQt6.QtCore import QDir, QModelIndex, Qt
 from PyQt6.QtGui import QFileSystemModel, QStandardItem, QStandardItemModel
 from PyQt6.QtWidgets import QStyle
 from qasync import asyncSlot
-import log
 
-from config import (
+from modules.config import (
     HEADER_NAME,
     HEADER_SIZE,
     HEADER_TYPE,

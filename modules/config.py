@@ -68,7 +68,7 @@ LOG_UPDATE_REMOTE_FS = "Remote filesystem updated"
 LOG_UPDATE_REMOTE_FS_ERROR = "Error updating remote filesystem: {error}"
 
 # Имя файла базы данных
-DB_FILE_NAME = "profiles.db"
+DB_FILE_NAME = "../profiles.db"
 
 # Дефолтные значения для профиля по умолчанию в БД
 DEFAULT_DB_HOST = "localhost"
@@ -133,3 +133,6 @@ LOG_SCANNING_REMOTE_FOLDER = "Scanning folder '{name}' for queue..."
 LOG_SCANNING_LOCAL_FOLDER = "Scanning local folder '{name}' for queue..."
 LOG_FOLDER_FILES_ADDED = "Added {count} files from folder to queue."
 LOG_REMOTE_FOLDER_READ_ERROR = "Error reading remote folder: {error}"
+
+SPEED_LIMIT = 1024 * 1024
+SHOWED_SPEED_LIMIT = SPEED_LIMIT/(1024*1024)
