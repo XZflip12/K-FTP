@@ -2,3 +2,4 @@ profiles.db
 .idea
 .vscode
 .venv
+__pychache__
