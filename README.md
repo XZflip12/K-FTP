@@ -1,86 +1,66 @@
 # K-FTP
-![header_logo](header.png)
-A simple desktop FTP client with a graphical interface built on **PyQt6**, with asynchronous networking via **aioftp** + **qasync**. The local file system is on the left, the remote server tree is on the right, and an operation log console sits below. Connections can be saved as profiles (SQLite).
 
-> This is a work-in-progress project: some parts of the interface (the transfer queue, settings) are still placeholders. See [Status and limitations](#status-and-limitations).
+![K-FTP](header.png)
+
+Desktop FTP client built with PyQt6, aioftp and qasync.
 
 ## Features
 
-- Connect to an FTP server by host, port, username and password (defaults: port `21`, user `anonymous`, socket timeout 5 seconds).
-- Two-pane interface: a local tree (`QFileSystemModel`) and a remote tree with *Name / Size / Type* columns.
-- Lazy loading of remote folders: a directory's contents are requested only when it is expanded; folders are listed before files, sorted by name (case-insensitive).
-- Human-readable file sizes (B / KB / MB / GB / TB) and file type by MIME.
-- Context menus:
-  - local pane: **Send to remote server** (upload), **Delete**;
-  - remote pane: **Download to local** (download into a chosen folder), **Delete from remote**.
-- Confirmation prompt before any deletion.
-- Connection profiles: save, pick from a drop-down list, delete (**App → Save Profile / Delete Profile**). The `Default` profile cannot be deleted.
-- Timestamped operation log in the bottom console.
-- Non-blocking UI: all network operations run asynchronously in the Qt event loop.
+- Two-pane view: local files and remote server
+- Lazy loading of remote directories
+- Transfer queue with pause, resume and clear; interrupted downloads are resumed
+- Rename, delete and create folders on both sides via context menu
+- Connection profiles stored in SQLite
+- Path bars for both panes
 
 ## Requirements
 
-- Python 3.10+ (developed on Python 3.14)
-- Dependencies from `requirements.txt`:
+- Python 3.10+
 
-| Package | Version |
-|---------|---------|
-| aioftp | 0.28.3 |
-| PyQt6 | 6.11.0 |
-| PyQt6-Qt6 | 6.11.2 |
-| PyQt6_sip | 13.13.0 |
-| qasync | 0.28.0 |
-
-> `requirements.txt` is saved in UTF-16 encoding. `pip` reads it fine, but some tools may display garbled text. Re-save it as UTF-8 if needed.
-
-## Installation and running
+## Installation
 
 ```bash
 git clone https://github.com/XZFlip12/k-ftp.git
 cd k-ftp
-
 python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-
+source .venv/bin/activate    # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-python main.py
 ```
+
+Note: `requirements.txt` is UTF-16 encoded.
 
 ## Usage
 
-1. Enter **Host**, **Port**, **Username** and **Password** (or choose a saved profile from the drop-down list) and click **Connect**.
-2. After a successful login, the server's root directory appears in the right pane. Folders expand on click, and their contents are loaded on demand.
-3. Right-click an item to open the context menu for uploading, downloading and deleting.
-4. To save the current connection settings, choose **App → Save Profile**; to delete the selected profile, choose **App → Delete Profile**.
+```bash
+python main.py
+```
 
-### Local test server
+Enter host, port, username and password, then press **Connect**. Use **App → Save Profile** to store the connection and **App → Delete Profile** to remove it (the `Default` profile can't be deleted).
 
-To try the client without an external FTP server, the repository includes `modules/test_server.py`:
+### Test server
+
+A local server for trying the client without a real FTP host (`localhost:2121`, anonymous login, 1 MB/s speed limit):
 
 ```bash
+cd modules
 python test_server.py
 ```
 
-The server starts on `localhost:2121` (by default aioftp accepts anonymous users and serves the current directory). In the client, use host `localhost`, port `2121`, username `anonymous` and an empty password.
+## Development
 
-### How it works
+The UI is designed in Qt Designer. After editing `user_interface/ClientUI.ui`, regenerate the Python module:
 
-- `main.py` builds the `FTPClient` class, which inherits from `QMainWindow` and the generated `Ui_KFTP`. The logic is split into modules as plain functions that are attached to the class as methods.
-- The Qt event loop is merged with `asyncio` through `qasync.QEventLoop`; async handlers are marked with `@asyncSlot`.
-- Profiles are stored in the `profiles` table (`id`, `host`, `username`, `password`, `port`) in `profiles.db` next to the code. On first access a default profile (`localhost`, `default_user`) is created.
-- The interface layout is edited in Qt Designer (`ClientUI.ui`); after changing it, regenerate the Python code:
+```bash
+pyuic6 user_interface/ClientUI.ui -o user_interface/ui_client.py
+```
 
-  ```bash
-  pyuic6 user_interface/ClientUI.ui -o user_interface/ui_client.py
-  ```
+## Known issues
 
-## Status and limitations
-
-- The **Settings** and **Credits** menu items are not implemented yet.
-- Only plain FTP is supported: **FTPS/SFTP are not implemented**, and data (including the password) is sent unencrypted.
-- Profile passwords are stored in `profiles.db` **in plain text**. Do not save sensitive credentials there.
-- There are no automated tests: `modules/test_server.py` is a helper server, not a test suite.
+- Settings and Credits menu items are not implemented
+- Plain FTP only, no FTPS/SFTP: traffic, including the password, is not encrypted
+- Profile passwords are stored in plain text in `profiles.db`
+- No automated tests
 
 ## License
 
-This project is licensed under the **GNU General Public License v3.0** - see the [LICENSE](LICENSE) file for details.
+[GPL-3.0](LICENSE)
