@@ -1,6 +1,11 @@
 import asyncio
 import aioftp
-from modules.config import DEFAULT_SERVER_HOST, DEFAULT_SERVER_PORT, SPEED_LIMIT, SHOWED_SPEED_LIMIT
+from config import (
+    DEFAULT_SERVER_HOST,
+    DEFAULT_SERVER_PORT,
+    SPEED_LIMIT,
+    SHOWED_SPEED_LIMIT,
+)
 
 
 async def run_server():

@@ -1,6 +1,8 @@
 # Привязка кнопок и сигналов
 def setup_signals(ui):
-    ui.connect_btn.clicked.connect(ui.handle_connection)
+    ui.connect_btn.clicked.connect(
+        lambda checked: ui.handle_connection() if checked else ui.handle_disconnect()
+    )
     ui.actionSave_Profile.triggered.connect(ui.load_profiles_to_db)
     ui.actionDelete_Profile.triggered.connect(ui.delete_profile_from_db)
     ui.actionUpdate_remote_tree.triggered.connect(ui.refresh_remote_tree)

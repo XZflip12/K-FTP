@@ -7,6 +7,8 @@ DEFAULT_SOCKET_TIMEOUT = 5
 LOG_EMPTY_HOST = "Host is empty"
 LOG_CONNECTING = "Connecting to host: {host}:{port}..."
 LOG_SUCCESS = "Connected to host and logged in!"
+LOG_DISCONNECTING = "Disconnecting from host..."
+LOG_SUCCESS_DISCONNECT = "Disconnected from host!"
 LOG_FETCHING = "Fetching root files..."
 LOG_FETCH_SUCCESS = "Files fetched successfully!"
 LOG_ERROR = "Error: {error}"
@@ -135,4 +137,4 @@ LOG_FOLDER_FILES_ADDED = "Added {count} files from folder to queue."
 LOG_REMOTE_FOLDER_READ_ERROR = "Error reading remote folder: {error}"
 
 SPEED_LIMIT = 1024 * 1024
-SHOWED_SPEED_LIMIT = SPEED_LIMIT/(1024*1024)
+SHOWED_SPEED_LIMIT = SPEED_LIMIT / (1024 * 1024)

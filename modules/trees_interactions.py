@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 from qasync import asyncSlot
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QMenu, QMessageBox
+from PyQt6.QtWidgets import QMenu, QMessageBox, QInputDialog
 from modules.config import (
     LOG_NO_FTP_CLIENT,
     DIR_MARKERS,
@@ -27,6 +27,8 @@ def show_local_context_menu(self, pos):
     menu = QMenu()
     menu.addAction("Send to remote server", lambda: self.on_send_to_remote(index))
     menu.addAction("Delete", lambda: self.on_delete_from_local(index))
+    menu.addAction("Rename", lambda: self.on_rename_local(index))
+    menu.addAction("Create folder", lambda: self.on_create_folder_local(index))
 
     menu.exec(self.local.mapToGlobal(pos))
 
@@ -39,6 +41,8 @@ def show_remote_context_menu(self, pos):
     menu = QMenu()
     menu.addAction("Download to local", lambda: self.on_send_to_local(index))
     menu.addAction("Delete from remote", lambda: self.on_delete_from_remote(index))
+    menu.addAction("Rename", lambda: self.on_rename_remote(index))
+    menu.addAction("Create folder", lambda: self.on_create_folder_remote(index))
 
     menu.exec(self.remote.mapToGlobal(pos))
 
@@ -224,6 +228,138 @@ async def on_send_to_remote(self, index):
             dest_path=destination_dir,
             total_size=local_path.stat().st_size,
         )
+
+
+def on_rename_local(self, index):
+    """Rename a local file or directory."""
+    old_path = Path(self.local_model.filePath(index))
+    old_name = old_path.name
+
+    new_name, ok = QInputDialog.getText(
+        self,
+        "Rename Local Item",
+        "Enter new name:",
+        text=old_name,
+    )
+    if not ok or not new_name.strip() or new_name == old_name:
+        return
+
+    new_path = old_path.parent / new_name.strip()
+    try:
+        old_path.rename(new_path)
+        self.log(f"Local item renamed: '{old_name}' -> '{new_name.strip()}'")
+    except Exception as e:
+        self.log(f"Error renaming local item: {e}")
+
+
+def on_create_folder_local(self, index):
+    """Create a new directory locally."""
+    selected_path = Path(self.local_model.filePath(index))
+
+    target_dir = (
+        selected_path if self.local_model.isDir(index) else selected_path.parent
+    )
+
+    folder_name, ok = QInputDialog.getText(
+        self,
+        "New Folder",
+        "Enter folder name:",
+        text="New Folder",
+    )
+    if not ok or not folder_name.strip():
+        return
+
+    new_folder_path = target_dir / folder_name.strip()
+    try:
+        new_folder_path.mkdir(parents=False, exist_ok=False)
+        self.log(f"Local folder created: '{new_folder_path.name}'")
+    except Exception as e:
+        self.log(f"Error creating local folder: {e}")
+
+
+@asyncSlot()
+async def on_rename_remote(self, index):
+    """Rename a remote file or directory on the FTP server."""
+    if not self.ftp_client:
+        self.log(LOG_NO_FTP_CLIENT)
+        return
+
+    item = self.remote_model.itemFromIndex(index)
+    if not item:
+        return
+
+    old_remote_path = item.data(Qt.ItemDataRole.UserRole)
+    if not old_remote_path:
+        return
+
+    old_path_obj = Path(str(old_remote_path))
+    old_name = item.text()
+
+    new_name, ok = QInputDialog.getText(
+        self,
+        "Rename Remote Item",
+        "Enter new name:",
+        text=old_name,
+    )
+    if not ok or not new_name.strip() or new_name == old_name:
+        return
+
+    new_name = new_name.strip()
+    new_remote_path = (old_path_obj.parent / new_name).as_posix()
+
+    self.log(f"Renaming remote item '{old_name}' to '{new_name}'...")
+    try:
+        await self.ftp_client.rename(old_remote_path, new_remote_path)
+
+        item.setText(new_name)
+        item.setData(new_remote_path, Qt.ItemDataRole.UserRole)
+        self.log(f"Remote item renamed successfully: '{new_name}'")
+    except Exception as e:
+        self.log(f"Error renaming remote item: {e}")
+
+
+@asyncSlot()
+async def on_create_folder_remote(self, index):
+    """Create a new directory on the remote FTP server."""
+    if not self.ftp_client:
+        self.log(LOG_NO_FTP_CLIENT)
+        return
+
+    item = self.remote_model.itemFromIndex(index)
+    if not item:
+        return
+
+    current_remote_path = Path(str(item.data(Qt.ItemDataRole.UserRole)))
+    type_item = self.remote_model.item(index.row(), 2)
+    is_dir = type_item is not None and type_item.text() in DIR_MARKERS
+
+    if is_dir:
+        parent_dir = current_remote_path
+        parent_item = item
+    else:
+        parent_dir = current_remote_path.parent
+        parent_item = item.parent() if item.parent() else self.remote_model
+
+    folder_name, ok = QInputDialog.getText(
+        self,
+        "New Remote Folder",
+        "Enter folder name:",
+        text="New Folder",
+    )
+    if not ok or not folder_name.strip():
+        return
+
+    folder_name = folder_name.strip()
+    new_dir_path = (parent_dir / folder_name).as_posix()
+
+    self.log(f"Creating remote folder: '{new_dir_path}'...")
+    try:
+        await self.ftp_client.make_directory(new_dir_path)
+
+        self.add_tree_item(parent_item, Path(new_dir_path), {"type": TYPE_DIR})
+        self.log(f"Remote folder created: '{folder_name}'")
+    except Exception as e:
+        self.log(f"Error creating remote folder: {e}")
 
 
 def on_local_item_clicked(self, index):

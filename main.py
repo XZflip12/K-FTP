@@ -5,8 +5,15 @@ from PyQt6.QtCore import Qt, QMimeDatabase, QModelIndex
 from PyQt6.QtWidgets import QApplication, QMainWindow
 from qasync import QEventLoop, asyncSlot
 
-from modules import handle_connection, signals_and_buttons, trees, trees_interactions, queue_manager, \
-    profile_interactions, log
+from modules import (
+    handle_connection,
+    signals_and_buttons,
+    trees,
+    trees_interactions,
+    queue_manager,
+    profile_interactions,
+    log,
+)
 from user_interface.ui_client import Ui_KFTP
 
 
@@ -35,6 +42,11 @@ class FTPClient(QMainWindow, Ui_KFTP):
     on_remote_item_clicked = trees_interactions.on_remote_item_clicked
     on_remote_path_entered = trees_interactions.on_remote_path_entered
 
+    on_rename_local = trees_interactions.on_rename_local
+    on_rename_remote = trees_interactions.on_rename_remote
+    on_create_folder_local = trees_interactions.on_create_folder_local
+    on_create_folder_remote = trees_interactions.on_create_folder_remote
+
     @asyncSlot(QModelIndex)
     async def on_node_expanded(self, index):
         """Handle node expansion event in both local and remote trees"""
@@ -45,6 +57,11 @@ class FTPClient(QMainWindow, Ui_KFTP):
         """Handle connection button click event"""
         await handle_connection.handle_connection(self)
 
+    @asyncSlot()
+    async def handle_disconnect(self):
+        """Handle disconnect button click event"""
+        await handle_connection.handle_disconnect(self)
+
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -52,6 +69,7 @@ class FTPClient(QMainWindow, Ui_KFTP):
         self.ftp_client = None
         self.mime_db = QMimeDatabase()
         self.queue_manager = queue_manager.QueueManager(self)
+        self.connect_btn.setCheckable(True)
 
         self.setup_local_tree()
         self.setup_remote_tree()

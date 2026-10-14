@@ -5,15 +5,19 @@ from modules.config import (
     DEFAULT_FTP_USER,
     DEFAULT_SOCKET_TIMEOUT,
     LOG_CONNECTING,
+    LOG_DISCONNECTING,
     LOG_EMPTY_HOST,
     LOG_ERROR,
     LOG_FETCH_SUCCESS,
     LOG_FETCHING,
     LOG_SUCCESS,
+    LOG_SUCCESS_DISCONNECT,
 )
 
 
 async def handle_connection(self):
+    self.connect_btn.setChecked(False)
+
     host = self.hostname.text().strip()
     port_text = self.port.text().strip()
     port = int(port_text) if port_text else DEFAULT_FTP_PORT
@@ -44,9 +48,11 @@ async def handle_connection(self):
 
         items_list.sort(key=lambda x: (x[1].get("type") != "dir", x[0].name.lower()))
 
-        # Добавляем файлы в корень модели
         for path, stat in items_list:
             self.add_tree_item(self.remote_model, path, stat)
+
+        self.connect_btn.setChecked(True)
+        self.connect_btn.setText("Disconnect")
 
         self.log(LOG_FETCH_SUCCESS)
 
@@ -54,5 +60,22 @@ async def handle_connection(self):
         self.log(LOG_ERROR.format(error=e))
         self.ftp_client = None
 
+        self.connect_btn.setChecked(False)
+
     finally:
         self.connect_btn.setEnabled(True)
+
+
+async def handle_disconnect(self):
+    self.log(LOG_DISCONNECTING)
+
+    if self.ftp_client:
+        await self.ftp_client.quit()
+        self.ftp_client = None
+
+    self.remote_model.removeRows(0, self.remote_model.rowCount())
+
+    self.connect_btn.setChecked(False)
+    self.connect_btn.setText("Connect")
+
+    self.log(LOG_SUCCESS_DISCONNECT)

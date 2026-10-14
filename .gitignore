@@ -2,4 +2,7 @@ profiles.db
 .idea
 .vscode
 .venv
-__pychache__
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
